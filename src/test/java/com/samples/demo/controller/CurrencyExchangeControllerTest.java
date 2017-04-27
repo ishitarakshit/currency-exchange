@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.concepts.domain.money.Money;
 import com.samples.demo.config.AppConfig;
+import com.samples.demo.exception.NoExchangeRateAvailableException;
 import com.samples.demo.service.BankingService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,10 +52,25 @@ public class CurrencyExchangeControllerTest {
 		Money source = Money.valueOf(SRC_AMT, Currency.getInstance(USD));
 		Currency target = Currency.getInstance(INR);
 		Money converted = Money.valueOf(CONVERTED_AMT, target);
+		
 		when(bankingServiceMock.convertMoney(source, target)).thenReturn(converted);
-		mockMvc.perform((get("/api/convert/" + SRC_AMT + "/" + USD + "/" + INR))).andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(jsonPath("$.amount").value(CONVERTED_AMT))
-				.andExpect(jsonPath("$.currency").value(INR));
+		
+		mockMvc.perform((get("/api/convert/" + SRC_AMT + "/" + USD + "/" + INR)))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+			.andExpect(jsonPath("$.amount").value(CONVERTED_AMT))
+			.andExpect(jsonPath("$.currency").value(INR));
+	}
+	
+	@Test
+	public void testConvertWhenRatesAreNotAvailable() throws Exception {
+		Money source = Money.valueOf(SRC_AMT, Currency.getInstance(USD));
+		Currency target = Currency.getInstance(INR);
+		
+		when(bankingServiceMock.convertMoney(source, target)).thenThrow(NoExchangeRateAvailableException.class);
+		
+		mockMvc.perform((get("/api/convert/" + SRC_AMT + "/" + USD + "/" + INR)))
+			.andExpect(status().isNotFound());
 	}
 
 }
