@@ -15,7 +15,17 @@ Conversion Table :
 Example :
 If we want to convert an amount of USD $30 to INR 
 
+Using postman - 
+
 Url : http://localhost:8080/currency-exchange/api/convert/30.00/USD/INR
+
+Authorization - 
+  
+  Type: Basic Auth
+  
+  User: admin
+  
+  Password: admin
 
 Json result : 
 {"amount":1410.00,"currency":"INR"}
